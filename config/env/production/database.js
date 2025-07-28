@@ -7,9 +7,14 @@ export default ({ env }) => ({
       database: env("DATABASE_NAME"),
       user: env("DATABASE_USERNAME"),
       password: env("DATABASE_PASSWORD"),
-      ssl: env.bool("DATABASE_SSL") && {
-        rejectUnauthorized: env.bool("DATABASE_SSL_REJECT_UNAUTHORIZED", false),
-      },
+      ssl: env.bool("DATABASE_SSL")
+        ? {
+            rejectUnauthorized: env.bool(
+              "DATABASE_SSL_REJECT_UNAUTHORIZED",
+              false
+            ),
+          }
+        : false,
     },
   },
 });
