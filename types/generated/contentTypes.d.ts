@@ -389,6 +389,7 @@ export interface ApiHomeHome extends Schema.SingleType {
 export interface ApiTestTest extends Schema.CollectionType {
   collectionName: 'tests';
   info: {
+    description: '';
     displayName: 'Test';
     pluralName: 'tests';
     singularName: 'test';
@@ -400,6 +401,7 @@ export interface ApiTestTest extends Schema.CollectionType {
     createdAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::test.test', 'oneToOne', 'admin::user'> &
       Attribute.Private;
+    Name: Attribute.String;
     publishedAt: Attribute.DateTime;
     TetsTitle: Attribute.String;
     updatedAt: Attribute.DateTime;
