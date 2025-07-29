@@ -1,0 +1,50 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          password: ${{ secrets.PROD_PASSWORD }}
+          script: |
+
+            echo "Loading nvm..."
+            export PATH="$PATH:/root/.nvm/versions/node/v20.19.0/bin"
+            export HOME="/root"
+            
+            echo "Navigating to Strapi project..."
+            cd /usr/share/nginx/UTT-Strapi
+
+            echo "Pulling latest changes..."
+            git reset --hard HEAD  # Reset to avoid conflicts
+            git pull origin main
+
+            echo "Stopping Strapi (if running)..."
+            pm2 stop strapi || echo "Strapi is not running"
+
+            echo "Removing cache and old dependencies..."
+            rm -rf .cache node_modules/.cache build .strapi
+
+            echo "Installing dependencies..."
+            npm install --force  # Force install to ensure all packages update
+
+            echo "Building Strapi..."
+            npm run build
+
+            echo "Starting Strapi with PM2..."
+            pm2 restart strapi || pm2 start "npm start" --name "strapi"
+
+            echo "Deployment complete!"
