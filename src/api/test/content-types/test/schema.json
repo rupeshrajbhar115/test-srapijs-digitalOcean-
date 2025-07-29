@@ -15,9 +15,6 @@
     "TetsTitle": {
       "type": "string"
     },
-    "Name": {
-      "type": "string"
-    },
     "date": {
       "type": "string"
     }
