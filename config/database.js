@@ -128,16 +128,12 @@ module.exports = ({ env }) => ({
   connection: {
     client: "mysql2",
     connection: {
-      host: env("DATABASE_HOST"),
+      host: env("DATABASE_HOST", "localhost"),
       port: env.int("DATABASE_PORT", 3306),
-      database: env("DATABASE_NAME"),
-      user: env("DATABASE_USERNAME"),
-      password: env("DATABASE_PASSWORD"),
-      ssl: {
-        ca: fs
-          .readFileSync(path.join(__dirname, "./ca-certificate.crt"))
-          .toString(),
-      },
+      database: env("DATABASE_NAME", "root"),
+      user: env("DATABASE_USERNAME", "root"),
+      password: env("DATABASE_PASSWORD", "123456"),
+      ssl: false,
     },
   },
 });
