@@ -402,6 +402,10 @@ export interface ApiTestTest extends Schema.CollectionType {
     createdBy: Attribute.Relation<'api::test.test', 'oneToOne', 'admin::user'> &
       Attribute.Private;
     date: Attribute.String;
+    imageGallery: Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     publishedAt: Attribute.DateTime;
     TetsTitle: Attribute.String;
     updatedAt: Attribute.DateTime;
