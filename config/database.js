@@ -72,9 +72,9 @@ module.exports = ({ env }) => {
         //     true
         //   ),
         // },
-        ssl: {
-          ca: require("fs").readFileSync(env("DATABASE_SSL_CA")).toString(),
-        },
+        // ssl: {
+        //   ca: require("fs").readFileSync(env("DATABASE_SSL_CA")).toString(),
+        // },
         schema: env("DATABASE_SCHEMA", "public"),
       },
       pool: {
