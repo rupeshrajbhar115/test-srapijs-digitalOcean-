@@ -402,7 +402,6 @@ export interface ApiTestTest extends Schema.CollectionType {
     createdBy: Attribute.Relation<'api::test.test', 'oneToOne', 'admin::user'> &
       Attribute.Private;
     date: Attribute.String;
-    Name1: Attribute.String;
     publishedAt: Attribute.DateTime;
     TetsTitle: Attribute.String;
     updatedAt: Attribute.DateTime;
