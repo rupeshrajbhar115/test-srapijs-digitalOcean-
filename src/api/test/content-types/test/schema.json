@@ -17,6 +17,9 @@
     },
     "Name": {
       "type": "string"
+    },
+    "date": {
+      "type": "string"
     }
   }
 }
