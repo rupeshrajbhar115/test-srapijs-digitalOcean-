@@ -38,7 +38,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /path/to/your/project
+            cd /root/test-srapijs-digitalOcean-
             git pull origin main
             npm install
             npm run build
