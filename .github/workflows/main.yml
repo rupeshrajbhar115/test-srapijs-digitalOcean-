@@ -6,38 +6,44 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code from GitHub
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Step 2: Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
+      # Step 3: Install project dependencies
       - name: Install Dependencies
         run: npm install --force
 
+      # Step 4: Run build to ensure code is valid
       - name: Build Strapi Project
         run: npm run build
 
-      - name: Deploy via SSH only if build succeeded
+      # ✅ Step 5: Only runs if build succeeded
+      # Clean old server code and stop running PM2
+      - name: Prepare Server (Clean + Stop PM2)
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
           username: ${{ secrets.PROD_USER }}
           password: ${{ secrets.PROD_PASSWORD }}
           script: |
-            echo "Stopping old Strapi (if running)..."
+            echo "Stopping Strapi (if running)..."
             pm2 stop strapi || echo "Strapi not running"
-
-            echo "Cleaning old build..."
+            echo "Cleaning old project..."
             rm -rf /root/test-srapijs-digitalOcean-/*
 
-      - name: Upload Project Files
+      # Step 6: Upload new local project to server
+      - name: Upload Project Files to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -46,7 +52,8 @@ jobs:
           source: "."
           target: "/root/test-srapijs-digitalOcean-"
 
-      - name: Restart Strapi
+      # Step 7: Install deps on server and start PM2
+      - name: Install & Restart on Server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -55,4 +62,5 @@ jobs:
           script: |
             cd /root/test-srapijs-digitalOcean-
             npm install --force
+            npm run build
             pm2 start "npm start" --name "strapi"
