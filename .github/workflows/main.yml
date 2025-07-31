@@ -1,42 +1,36 @@
-name: Deploy to Production
-
-on:
-  push:
-    branches:
-      - main
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
-      - name: Checkout Code
+      # Step 1: Checkout Repo
+      - name: Checkout Repo
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      # Step 3: Install dependencies
+      # Step 2: Install Dependencies
       - name: Install Dependencies
         run: npm install --force
 
-      # Step 4: Run Strapi develop in CI to catch errors (timeout to prevent hanging)
+      # Step 3: Check for develop errors
       - name: Check Development Environment (fail if errors)
+        id: check_dev
         run: |
           echo "Running npm run develop for error check..."
-          timeout 30s npm run develop -- --no-build || exit 1
+          if timeout 30s npm run develop -- --no-build; then
+            echo "develop_check=true" >> $GITHUB_ENV
+          else
+            echo "develop_check=false" >> $GITHUB_ENV
+            exit 1
+          fi
 
-      # Step 5: Build Strapi (required for production)
+      # Step 4: Build Strapi (Only if develop passed)
       - name: Build Strapi Project
+        if: env.develop_check == 'true'
         run: npm run build
 
-      # Step 6: Stop old Strapi and clean project (runs only if above succeeded)
+      # Step 5: Stop old Strapi and clean server (Only if develop passed)
       - name: Prepare Server
-        if: success()
+        if: env.develop_check == 'true'
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -48,9 +42,9 @@ jobs:
             echo "Cleaning previous project files..."
             rm -rf /root/test-srapijs-digitalOcean-/*
 
-      # Step 7: Upload code to server
+      # Step 6: Upload files (Only if develop passed)
       - name: Upload Project Files
-        if: success()
+        if: env.develop_check == 'true'
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -59,9 +53,9 @@ jobs:
           source: "."
           target: "/root/test-srapijs-digitalOcean-"
 
-      # Step 8: Reinstall and restart Strapi on server
+      # Step 7: Restart Strapi on server (Only if develop passed)
       - name: Restart Strapi
-        if: success()
+        if: env.develop_check == 'true'
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
