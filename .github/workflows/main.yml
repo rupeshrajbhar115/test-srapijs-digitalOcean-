@@ -6,44 +6,45 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code from GitHub
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      # Step 3: Install project dependencies
       - name: Install Dependencies
         run: npm install --force
 
-      # Step 4: Run build to ensure code is valid
+      - name: Run Development Build Check (Fail Fast if Error)
+        run: |
+          echo "Running 'npm run develop' to test for errors..."
+          npm run develop -- --no-build
+        continue-on-error: false
+
       - name: Build Strapi Project
         run: npm run build
 
-      # ✅ Step 5: Only runs if build succeeded
-      # Clean old server code and stop running PM2
-      - name: Prepare Server (Clean + Stop PM2)
+      - name: Deploy via SSH only if build succeeded
+        if: success()  # 🟢 This ensures only if above steps passed
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
           username: ${{ secrets.PROD_USER }}
           password: ${{ secrets.PROD_PASSWORD }}
           script: |
-            echo "Stopping Strapi (if running)..."
+            echo "Stopping old Strapi (if running)..."
             pm2 stop strapi || echo "Strapi not running"
-            echo "Cleaning old project..."
+            echo "Cleaning old build..."
             rm -rf /root/test-srapijs-digitalOcean-/*
 
-      # Step 6: Upload new local project to server
-      - name: Upload Project Files to Server
+      - name: Upload Project Files
+        if: success()
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -52,8 +53,8 @@ jobs:
           source: "."
           target: "/root/test-srapijs-digitalOcean-"
 
-      # Step 7: Install deps on server and start PM2
-      - name: Install & Restart on Server
+      - name: Restart Strapi
+        if: success()
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -62,5 +63,5 @@ jobs:
           script: |
             cd /root/test-srapijs-digitalOcean-
             npm install --force
-            npm run build
             pm2 start "npm start" --name "strapi"
+            echo "Strapi restarted successfully!"
