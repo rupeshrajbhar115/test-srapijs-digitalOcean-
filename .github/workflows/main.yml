@@ -1,4 +1,4 @@
-jobs:
+on:
   deploy:
     runs-on: ubuntu-latest
 
