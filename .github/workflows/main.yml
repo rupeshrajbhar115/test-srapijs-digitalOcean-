@@ -10,58 +10,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 18
 
-      - name: Install Dependencies
-        run: npm install --force
+      - name: Install dependencies
+        run: npm install
 
-      - name: Run Development Build Check (Fail Fast if Error)
-        run: |
-          echo "Running 'npm run develop' to test for errors..."
-          npm run develop -- --no-build
-        continue-on-error: false
-
-      - name: Build Strapi Project
+      - name: Build project
         run: npm run build
 
-      - name: Deploy via SSH only if build succeeded
-        if: success()  # 🟢 This ensures only if above steps passed
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.PROD_SERVER_IP }}
-          username: ${{ secrets.PROD_USER }}
-          password: ${{ secrets.PROD_PASSWORD }}
-          script: |
-            echo "Stopping old Strapi (if running)..."
-            pm2 stop strapi || echo "Strapi not running"
-            echo "Cleaning old build..."
-            rm -rf /root/test-srapijs-digitalOcean-/*
+      - name: Test develop command (fail-fast)
+        run: |
+          echo "Testing 'npm run develop' for errors..."
+          timeout 30s npm run develop -- --no-build || exit 1
 
-      - name: Upload Project Files
+      - name: Deploy to Server (only if everything above passes)
         if: success()
-        uses: appleboy/scp-action@master
+        uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.PROD_SERVER_IP }}
-          username: ${{ secrets.PROD_USER }}
-          password: ${{ secrets.PROD_PASSWORD }}
-          source: "."
-          target: "/root/test-srapijs-digitalOcean-"
-
-      - name: Restart Strapi
-        if: success()
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.PROD_SERVER_IP }}
-          username: ${{ secrets.PROD_USER }}
-          password: ${{ secrets.PROD_PASSWORD }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
-            cd /root/test-srapijs-digitalOcean-
-            npm install --force
-            pm2 start "npm start" --name "strapi"
-            echo "Strapi restarted successfully!"
+            cd /path/to/your/project
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart strapi
