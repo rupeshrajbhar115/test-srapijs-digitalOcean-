@@ -8,6 +8,7 @@ module.exports = ({ env }) => ({
         endpoint: env("DO_SPACE_ENDPOINT"),
         space: env("DO_SPACE_NAME"),
         region: env("DO_SPACE_REGION"),
+        cdn: env("DO_SPACE_CDN"), // Optional, used for image URLs
       },
     },
   },
