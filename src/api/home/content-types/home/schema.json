@@ -20,6 +20,9 @@
     },
     "date": {
       "type": "string"
+    },
+    "bannerTitle": {
+      "type": "string"
     }
   }
 }
