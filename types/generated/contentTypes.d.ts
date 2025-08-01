@@ -377,6 +377,7 @@ export interface ApiHomeHome extends Schema.SingleType {
     createdAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::home.home', 'oneToOne', 'admin::user'> &
       Attribute.Private;
+    date: Attribute.String;
     description: Attribute.String;
     publishedAt: Attribute.DateTime;
     title: Attribute.String;
