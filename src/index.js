@@ -1,4 +1,6 @@
-'use strict';
+"use strict";
+
+throw new Error("Test deploy failure");
 
 module.exports = {
   /**
