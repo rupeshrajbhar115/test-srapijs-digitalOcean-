@@ -1,7 +1,5 @@
 "use strict";
 
-throw new Error("Test deploy failure");
-
 module.exports = {
   /**
    * An asynchronous register function that runs before
